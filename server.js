@@ -88,7 +88,7 @@ app.get('/exportar-csv', (req, res) => {
   }
 
   if (fechaInicio) {
-    const fechaInicioMenosUno = new Date(new Date(fechaFin).getTime() -  1000)
+    const fechaInicioMenosUno = new Date(new Date(fechaInicio).getTime())
       .toISOString()
       .slice(0, 10);
     query += ' AND datetime(hora_inicio) >= datetime(?)';
