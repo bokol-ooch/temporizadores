@@ -2,6 +2,8 @@ En este proyecto se implementa una pagina web servida por express desarrollada e
 
 ![Pantalla inicial](Captura%20de%20pantalla%202025-09-22%20130900.png)
 
+Cada temporizador funciona de manera independiente y teoricamente el servidor esta diseñado para ser concurrente, podria soportar diferentes usuarios a la vez, pero los nombres seran iguales
 ![Temporizadores funcionando](Captura%20de%20pantalla%202025-09-22%20130919.png)
 
+Se puede filtrar toda la base de datos por usuario y / o por fecha. no esta implementado pero se puede agregar facilmente un filtro por estante.
 ![Detalle descarga csv](Captura%20de%20pantalla%202025-09-22%20130935.png)
