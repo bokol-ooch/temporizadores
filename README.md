@@ -3,6 +3,4 @@ En este proyecto se implementa una pagina web servida por express desarrollada e
 
 ![Temporizadores funcionando](Captura%20de%20pantalla%202025-09-22%20130919.png)
 
-![Temporizadores funcionando]([[imágenes/ejemplo.png](https://github.com/bokol-ooch/temporizadores/blob/main/Captura%20de%20pantalla%202025-09-22%20130919.png)](https://github.com/bokol-ooch/temporizadores/blob/main/Captura%20de%20pantalla%202025-09-22%20130919.png))
-
-![Detalle descarga csv]([[imágenes/ejemplo.png](https://github.com/bokol-ooch/temporizadores/blob/main/Captura%20de%20pantalla%202025-09-22%20130935.png)](https://github.com/bokol-ooch/temporizadores/blob/main/Captura%20de%20pantalla%202025-09-22%20130935.png))
+![Detalle descarga csv](Captura%20de%20pantalla%202025-09-22%20130935.png)
