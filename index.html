@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel de Cronómetros Multiusuario</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+#panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+
+    .usuario {
+      background: white;
+      padding: 20px;
+	  width: 300px;
+      margin: 0; /* ya no necesitas auto */
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+
+      display: flex;            /* Para alinear en fila */
+      flex-wrap: wrap;          /* Para que baje a otra fila si no cabe */
+      gap: 15px;                /* Espacio entre elementos */
+      align-items: center;      /* Centrar verticalmente */
+    }
+
+    .usuario h2 {
+      flex-basis: 100%;         /* El título ocupa toda la fila */
+      margin-top: 0;
+    }
+
+    .usuario label,
+    .usuario select,
+    .usuario .cronometro,
+    .usuario button,
+    .usuario .resumen {
+      flex: 1 1 120px;          /* Cada elemento puede crecer, encoger, base mínimo 120px */
+      min-width: 120px;         /* Evita que se achiquen demasiado */
+    }
+
+    .usuario .cronometro {
+      font-size: 28px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 0;            /* Ajuste aquí porque botón ya no está en columna */
+      white-space: nowrap;
+    }
+
+    .iniciar {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .detener {
+      background-color: #f44336;
+      color: white;
+    }
+
+    select {
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .resumen {
+      font-size: 14px;
+      color: #333;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+      margin-top: 0;
+    }
+
+    /* Responsive: en pantallas muy pequeñas apilamos en columna */
+    @media (max-width: 480px) {
+      .usuario {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .usuario label,
+      .usuario select,
+      .usuario .cronometro,
+      .usuario button,
+      .usuario .resumen {
+        flex-basis: auto;
+        min-width: auto;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Panel de Cronómetros</h1>
+  <div style="margin-bottom: 15px;">
+  <label for="filter-nombre">Usuario:</label>
+  <select id="filter-nombre">
+    <option value="">Todos</option>
+    <option value="Usuario 1">Usuario 1</option>
+    <option value="Usuario 2">Usuario 2</option>
+    <option value="Usuario 3">Usuario 3</option>
+    <option value="Usuario 4">Usuario 4</option>
+    <option value="Usuario 5">Usuario 5</option>
+  </select>
+
+  <label for="filter-fecha-inicio" style="margin-left: 20px;">Fecha inicio:</label>
+  <input type="date" id="filter-fecha-inicio" />
+
+  <label for="filter-fecha-fin" style="margin-left: 20px;">Fecha fin:</label>
+  <input type="date" id="filter-fecha-fin" />
+</div>
+
+<button onclick="descargarCSV()" style="margin-bottom: 20px;">Descargar CSV</button>
+  <div id="panel"></div>
+
+  <script>
+  
+function descargarCSV() {
+  const nombre = document.getElementById('filter-nombre').value;
+  const fechaInicio = document.getElementById('filter-fecha-inicio').value;
+  const fechaFin = document.getElementById('filter-fecha-fin').value;
+
+  // Construir query string con filtros
+  const params = new URLSearchParams();
+  if (nombre) params.append('nombre', nombre);
+  if (fechaInicio) params.append('fechaInicio', fechaInicio);
+  if (fechaFin) params.append('fechaFin', fechaFin);
+
+  const url = '/exportar-csv?' + params.toString();
+
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = 'registros_filtrados.csv';
+  document.body.appendChild(enlace);
+  enlace.click();
+  document.body.removeChild(enlace);
+}
+
+
+    const usuarios = ['Usuario 1', 'Usuario 2', 'Usuario 3', 'Usuario 4', 'Usuario 5'];
+
+    const panel = document.getElementById('panel');
+
+    // Estructura interna de datos por usuario
+    const estadoUsuarios = {};
+
+    usuarios.forEach(nombre => {
+      // Inicializar estado
+      estadoUsuarios[nombre] = {
+        tiempo: 0,
+        activo: false,
+        intervalo: null,
+        horaInicio: null,
+        horaFin: null,
+        estante: ''
+      };
+
+      // Crear interfaz
+      const div = document.createElement('div');
+      div.className = 'usuario';
+
+      div.innerHTML = `
+        <h2>${nombre}</h2>
+        <label for="estante-${nombre}">Selecciona estante:</label>
+        <select id="estante-${nombre}">
+          <option value="Estante 1">Estante 1</option>
+          <option value="Estante 2">Estante 2</option>
+          <option value="Estante 3">Estante 3</option>
+        </select>
+        <div class="cronometro" id="cronometro-${nombre}">00:00</div>
+        <button class="iniciar" id="boton-${nombre}">Iniciar</button>
+        <div class="resumen" id="resumen-${nombre}"></div>
+      `;
+
+      panel.appendChild(div);
+
+      // Agregar evento al botón
+      const boton = document.getElementById(`boton-${nombre}`);
+      boton.addEventListener('click', () => toggleCronometro(nombre));
+    });
+
+    function toggleCronometro(nombre) {
+      const estado = estadoUsuarios[nombre];
+      const boton = document.getElementById(`boton-${nombre}`);
+      const cronometro = document.getElementById(`cronometro-${nombre}`);
+      const selectEstante = document.getElementById(`estante-${nombre}`);
+      const resumen = document.getElementById(`resumen-${nombre}`);
+
+      if (estado.activo) {
+        // Detener cronómetro
+        clearInterval(estado.intervalo);
+        estado.horaFin = new Date();
+        estado.activo = false;
+
+        const tiempoTranscurrido = Math.floor((estado.horaFin - estado.horaInicio) / 1000);
+        const minutos = Math.floor(tiempoTranscurrido / 60);
+        const segundos = tiempoTranscurrido % 60;
+
+        cronometro.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        boton.textContent = 'Iniciar';
+        boton.className = 'iniciar';
+
+        // Mostrar resumen
+        resumen.innerHTML = `
+          <p><strong>Estante:</strong> ${estado.estante}</p>
+          <p><strong>Inicio:</strong> ${estado.horaInicio.toLocaleString()}</p>
+          <p><strong>Fin:</strong> ${estado.horaFin.toLocaleString()}</p>
+          <p><strong>Tiempo:</strong> ${minutos} min ${segundos} s</p>
+        `;
+
+        // Enviar al servidor
+ fetch('/guardar', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    nombre,
+    estante: estado.estante,
+    horaInicio: estado.horaInicio.toISOString(),  // <-- Aquí ISO string
+    horaFin: estado.horaFin.toISOString(),        // <-- Aquí ISO string
+    tiempoTranscurrido
+  })
+})
+.then(res => res.json())
+.then(res => {
+  if (!res.success) console.error(res.message);
+});
+
+      } else {
+        // Iniciar cronómetro
+        estado.estante = selectEstante.value;
+        estado.horaInicio = new Date();
+        estado.tiempo = 0;
+        estado.activo = true;
+
+        estado.intervalo = setInterval(() => {
+          estado.tiempo++;
+          const minutos = Math.floor(estado.tiempo / 60);
+          const segundos = estado.tiempo % 60;
+          cronometro.textContent = `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        boton.textContent = 'Detener';
+        boton.className = 'detener';
+        resumen.innerHTML = '';
+      }
+    }
+  </script>
+</body>
+</html>
